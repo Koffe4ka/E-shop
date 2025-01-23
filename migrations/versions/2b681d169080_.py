@@ -25,6 +25,7 @@ def upgrade():
     sa.Column('price', sa.Float(), nullable=False),
     sa.Column('picture', sa.String(length=255), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
+    sa.Column('rating', sa.Integer, nullable = True),
     sa.Column('is_available', sa.Boolean(), nullable=False),
     sa.Column('is_deleted', sa.Boolean(), nullable=False),
     sa.Column('created_on', sa.DateTime(), nullable=True),

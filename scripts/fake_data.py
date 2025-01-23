@@ -126,7 +126,7 @@ with app.app_context():
             rating = Rating(
                 product_id=random.choice(products).id,
                 user_id=random.choice(users).id,
-                rating=round(random.uniform(1.0, 5.0), 1),
+                rating=random.randint(1, 5),
                 created_on=fake.date_time_between(start_date="-1y", end_date="now")
             )
             db.session.add(rating)
@@ -136,15 +136,22 @@ with app.app_context():
     def create_fake_transactions(count=50):
         users = User.query.all()
 
+        transaction_types = ["Deposit", "Withdrawal", "Purchase"]
+        transaction_statuses = ["Pending", "Completed", "Failed"]
+
         for _ in range(count):
             transaction = Transaction(
                 user_id=random.choice(users).id,
                 sum=round(random.uniform(10.0, 1000.0), 2),  # Generuojama atsitiktinė suma
+                status=random.choice(transaction_statuses),  # Atsitiktinė būklė
+                type=random.choice(transaction_types),  # Atsitiktinis tipas
                 created_on=fake.date_time_between(start_date="-1y", end_date="now")
             )
             db.session.add(transaction)
+
         db.session.commit()
-        print(f"{count} transaction created")
+        print(f"{count} fake transactions created")
+
 
     def generate_fake_data():
         create_admin_user()
