@@ -24,7 +24,8 @@ def show():
     ).outerjoin(Rating, Rating.product_id == Product.id) \
      .group_by(Product.id)
     if current_user.is_authenticated and current_user.is_admin:
-        products = products_query.filter(Product.is_deleted == False).all()
+        products = products_query.filter(Product.is_deleted==False).all()  
+
     else:
         products = products_query.filter(Product.is_deleted == False, Product.quantity > 0).all()
 
