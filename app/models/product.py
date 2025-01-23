@@ -14,23 +14,8 @@ class Product(db.Model):
     is_available = db.Column(db.Boolean, default = False, nullable = False)
     is_deleted = db.Column(db.Boolean, default = False, nullable = False)
     created_on = db.Column(db.DateTime, default = func.now())
-
+    # relations
     cart_items = db.relationship("CartItem", back_populates="product")
     order_items = db.relationship("OrderItem", back_populates="product")
     ratings = db.relationship("Rating",back_populates="product")
-
-
-    def __init__(self, name, description, price, picture, quantity, is_available, is_deleted, created_on=None):
-        self.name = name
-        self.description = description
-        self.price = price
-        self.picture = picture
-        self.quantity = quantity
-        self.created_on = created_on
-        self.is_available = is_available
-        self.is_deleted = is_deleted
-
-    def __repr__(self):
-        return f" Product: {self.name}, price - {self.price}, description - {self.description}"
-
 

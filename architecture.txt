@@ -1,0 +1,81 @@
+E-shop
+│   app
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── database.cpython-312.pyc
+│   ├── models
+│   │   ├── __pycache__
+│   │   │   ├── cart_item.cpython-312.pyc
+│   │   │   ├── dummies.cpython-312.pyc
+│   │   │   ├── order_item.cpython-312.pyc
+│   │   │   ├── order.cpython-312.pyc
+│   │   │   ├── product_cart.cpython-312.pyc
+│   │   │   ├── product.cpython-312.pyc
+│   │   │   ├── rating.cpython-312.pyc
+│   │   │   ├── transaction.cpython-312.pyc
+│   │   │   └── user.cpython-312.pyc
+│   │   ├── cart_item.py
+│   │   ├── dummies.py
+│   │   ├── order_item.py
+│   │   ├── order.py
+│   │   ├── product_cart.py
+│   │   ├── product.py
+│   │   ├── rating.py
+│   │   ├── transaction.py
+│   │   └── user.py
+│   ├── routes
+│   │   ├── __pycache__
+│   │   │   ├── admin_routes.cpython-312.pyc
+│   │   │   ├── shop_routes.cpython-312.pyc
+│   │   │   └── user_routes.cpython-312.pyc
+│   │   ├── admin_routes.py
+│   │   ├── product_routes.py
+│   │   ├── shop_routes.py
+│   │   └── user_routes.py
+│   ├── static
+│   │   ├── css
+│   │   │   ├── admin.css
+│   │   │   └── styles.css
+│   │   └── uploads
+│   ├── templates
+│   │   ├── admin
+│   │   │   ├── add_product.html
+│   │   │   ├── admin_layout.html
+│   │   │   ├── edit_product.html
+│   │   │   ├── index.html
+│   │   │   ├── product_list.html
+│   │   │   ├── view_all_transactions.html
+│   │   │   ├── view_orders.html
+│   │   │   └── view_users.html
+│   │   ├── user
+│   │   │   ├── user_index.html
+│   │   │   ├── user_layout.html
+│   │   │   ├── user_login_extends_base.html
+│   │   │   ├── user_register_extends_base.html
+│   │   │   ├── user_transactions.html
+│   │   │   └── view_orders.html
+│   │   ├── base.html
+│   │   └── products_extends_base.html
+│   ├── __init__.py
+│   └── database.py
+│   instance
+│   └── shop.db
+│   migrations
+│   ├── __pycache__
+│   │   └── env.cpython-312.pyc
+│   ├── versions
+│   │   ├── __pycache__
+│   │   │   └── bd65e495e360_.cpython-312.pyc
+│   │   └── bd65e495e360_.py
+│   ├── alembic.ini
+│   ├── env.py
+│   ├── README
+│   └── script.py.mako
+│   scripts
+│   └── fake_data.py
+│   .gitignore
+│   architecture.txt
+│   config.py
+│   README.md
+│   requirements.txt
+│   run.py

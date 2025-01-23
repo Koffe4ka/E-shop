@@ -9,15 +9,6 @@ class Rating(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     rating = db.Column(db.Float)
     created_on = db.Column(db.DateTime, default = func.now())
-
+    # relations
     product = db.relationship("Product", back_populates="ratings")
-    user = db.relationship("User", back_populates="ratings")
-
-    def __init__(self, rating, created_on=None):
-        self.rating = rating
-        self.created_on = created_on
-
-    def __repr__(self):
-        pass
-
-                           
+    user = db.relationship("User", back_populates="ratings")          
