@@ -12,4 +12,7 @@ class ProductCart(db.Model):
     cart_items = db.relationship('CartItem', back_populates='products_carts')
 
 
+    def __repr__(self):
+        pass
+
 

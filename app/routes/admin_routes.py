@@ -39,8 +39,8 @@ def add_product():
             quantity = int(request.form["quantity"])
         except:
             flash("something went wrong, check input", 'danger')
-            return render_template("admin/product_list.html")        #add template
-       
+            return render_template("admin/product_list.html")        
+        
         is_available = quantity > 0
         is_deleted = False
         created_on = func.now()
@@ -83,17 +83,17 @@ def add_product():
         db.session.add(product)
         db.session.commit()
         flash("product added successfully",'success')
-        return redirect(url_for("admin.list_products"))         #add template
+        return redirect(url_for("admin.list_products"))        
     else:
-        return render_template("admin/add_product.html")           #add template
- 
- 
+        return render_template("admin/add_product.html")          
+
+
 @admin.route("/list_products")
 def list_products():
     products = Product.query.all()
-    return render_template("admin/product_list.html", products=products)    #add template
- 
- 
+    return render_template("admin/product_list.html", products=products)    
+
+
 @admin.route("/delete_product/<int:id>", methods = ["GET", "POST"])
 def delete_product(id):
     product = Product.query.get(id)
@@ -105,11 +105,11 @@ def delete_product(id):
     if request.method == "POST":
         product.is_deleted = True
         db.session.commit()
-        return redirect(url_for("admin.list_products"))         #add template
+        return redirect(url_for("admin.list_products"))         
     else:
-        return render_template("admin/product_list.html", product=product)      #add template
- 
- 
+        return render_template("admin/product_list.html", product=product)      
+
+
 @admin.route("/restore_product/<int:id>", methods = ["GET", "POST"])
 def restore_product(id):
     product = Product.query.get(id)
@@ -122,12 +122,12 @@ def restore_product(id):
         product.is_deleted = False
         db.session.commit()
         flash("Product restored successfully", 'success')
-        return redirect(url_for("admin.list_products"))         #add template
+        return redirect(url_for("admin.list_products"))         
     else:
-        return render_template("admin/product_list.html", product=product)      #add template
- 
- 
- 
+        return render_template("admin/product_list.html", product=product)      
+
+
+
 @admin.route("/edit_product/<int:id>", methods = ["GET", "POST"])
 def edit_product(id):
     product = Product.query.get(id)
@@ -146,8 +146,8 @@ def edit_product(id):
             if 'picture' in request.files and request.files["picture"].filename != '':
                 picture = request.files["picture"]
                 if allowed_file(picture.filename):
-                    filename = secure_filename(picture.filename)                                #returns the secure version of the image
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                    filename = secure_filename(picture.filename)                                
+                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename) 
                     picture.save(filepath)
                     product.picture=filename
                 else:
@@ -157,8 +157,8 @@ def edit_product(id):
             flash("Entry edited successsfully", "success")      
         except:
             flash("smoething went wrong, check input", 'danger')
-            return redirect(request.url)
-        return redirect(url_for("admin.list_products"))    #add url
+            return redirect(request.url) 
+        return redirect(url_for("admin.list_products"))   
     else:
         return render_template("admin/edit_product.html", product = product)
  
@@ -166,10 +166,10 @@ def edit_product(id):
  
 @admin.route("/list_users")
 def list_users():
-    users = User.query.all()
-    return render_template("...", users=users)      #add template
- 
- 
+    users = User.query.all()                        
+    return render_template("...", users=users)    
+
+
 @admin.route("/delete_user/<int:id>", methods = ["GET", "POST"])
 def delete_user(id):
     user = User.query.get(id)
@@ -177,50 +177,52 @@ def delete_user(id):
     if not user:
         flash('User not found','danger')
         return redirect(request.url)
-   
+    
     if request.method == "POST":
         user.is_deleted = True
         db.session.commit()
-        return redirect(url_for("users.show_users"))            
+        return redirect(url_for("users.show_users"))             
     else:
         return render_template("admin/view_users.html", user = user)  
- 
- 
+
+
 @admin.route("/edit_user/<int:id>", methods = ["GET", "POST"])
 def edit_user(id):
     user = User.query.get(id)
- 
+
     if not user:
         flash("User not found",'danger')
         return redirect(url_for("users.show_users"))
-   
+    
     if request.method == "POST":
         try:
             user.name = request.form["name"]
             user.last_name = request.form["last_name"]
             user.login_email = request.form["login_email"]
             password = request.form["password"]
-           
+            
             if password:
                 user.password = generate_password_hash(password)
-            user.is_admin = 'is_admin' in request.form 
+
+            user.is_admin = "is_admin" in request.form
+
             db.session.commit()
             flash("Entry edited successfully", "success")      
         except:
             flash("something went wrong, check input", 'danger')
-            return redirect(request.url)
-        return redirect(url_for("users.show_users"))    #add url
+            return redirect(request.url) 
+        return redirect(url_for("users.show_users"))    
     else:
         return render_template("admin/edit_user.html", user = user)
- 
+
 @admin.route("/restore_user/<int:id>", methods = ["GET", "POST"])
 def restore_user(id):
     user = User.query.get(id)
- 
+
     if not user:
         flash("User not found", 'danger')
         return redirect(request.url)
-   
+    
     if request.method == "POST":
         user.is_deleted = False
         db.session.commit()
@@ -228,42 +230,38 @@ def restore_user(id):
         return redirect(url_for("users.show_users"))
     else:
         return render_template("/admin/view_users.html")
- 
- 
+
+
 @admin.route("/unblock_user/<int:id>", methods = ["GET", "POST"])
 def unblock_user(id):
     user = User.query.get(id)
- 
-    if not User:
+
+    if not user:
         flash('User not found','danger')
         return redirect(request.url)
- 
+
     if request.method == "POST":
         user.is_active = True
         db.session.commit()
         flash("User unblocked successfully", 'success')
-        return redirect(url_for("users.show_users"))         #add template
+        return redirect(url_for("users.show_users"))         
     else:
-        return render_template("admin/view_users.html", user=user)      #add template
- 
- 
+        return render_template("admin/view_users.html", user=user)     
+
+
 @admin.route("/block_user/<int:id>", methods = ["GET", "POST"])
 def block_user(id):
     user = User.query.get(id)
- 
+
     if not user:
         flash('User not found','danger')
         return redirect(request.url)
-   
+    
     if request.method == "POST":
         user.is_active = False
         db.session.commit()
-        return redirect(url_for("users.show_users"))            
+        return redirect(url_for("users.show_users"))             
     else:
         return render_template("admin/view_users.html", user = user)
-# Administratoriaus galimybės
- 
- 
-# Peržiūrėti statistika apie prekes. Kiek prekių nupirkta kurią dieną, už kiek nupirkta,
-# kurie mėnesiai pelningiausi, kurios prekės geriausiai įvertintos
- 
+
+

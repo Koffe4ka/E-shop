@@ -64,8 +64,6 @@ class LoginForm(FlaskForm):
 
 bp = Blueprint('users', __name__)
 
-
-
 @bp.route('/get_client_token', methods=['GET'])
 @login_required
 def get_client_token():
@@ -140,7 +138,7 @@ def user_homepage():
 def dashboard():
     if current_user.is_admin:
         return redirect(url_for('users.admin_dashboard'))
-    elif current_user.is_active and not current_user.is_admin:
+    else:
         return redirect(url_for('users.user_homepage'))
     
 
@@ -310,3 +308,4 @@ def pay_for_order():
         flash("An error occurred. Please try again later.", "danger")
 
     return redirect(url_for('users.user_dashboard'))
+

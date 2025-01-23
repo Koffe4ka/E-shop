@@ -9,3 +9,6 @@ class OrderItem(db.Model):
     # relations
     order = db.relationship("Order", back_populates="order_items")
     product = db.relationship("Product", back_populates="order_items")
+
+    def __repr__(self):
+        pass
