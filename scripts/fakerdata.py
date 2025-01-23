@@ -133,7 +133,7 @@ with app.app_context():
             rating = Rating(
                 product_id=random.choice(products).id,
                 user_id=random.choice(users).id,
-                rating=round(random.uniform(1.0, 5.0), 1),
+                rating=random.randint(1, 5),
                 created_on=fake.date_time_between(start_date="-1y", end_date="now")
             )
             db.session.add(rating)

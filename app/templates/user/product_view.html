@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}{{product.name}}{% endblock %}
+
+{% block content %}
+<section class="container">
+    <div class="row product-summary mt-5">
+        <div class="col-md-6">
+            <div class="product-img">
+                <div class="product-img">
+                    <img src="{{ url_for('static', filename= 'uploads/' ~ product.picture) }}" class="card-img-top" alt="{{ product.name }}">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h2>{{ product.name }}</h2>
+            <p>Average Rating: {{ "%.1f"|format(average_rating) }}</p>
+            <div class="product-rating mb-2">
+                {% if product.rating %}
+                    <div class="rating-stars">
+                        {% for i in range(1, 6) %}
+                            {% if product.rating >= i %}
+                                <!-- Full star -->
+                                <i class="fa fa-star"></i>
+                            {% elif product.rating > (i - 1) and product.rating < i %}
+                                <!-- Half star -->
+                                <i class="fa fa-star-half-o"></i>
+                            {% else %}
+                                <!-- Empty star -->
+                                <i class="fa fa-star-o"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="rating-stars">
+                        <!-- Display 5 empty stars if no rating -->
+                        <i class="fa fa-star-o"></i>
+                        <i class="fa fa-star-o"></i>
+                        <i class="fa fa-star-o"></i>
+                        <i class="fa fa-star-o"></i>
+                        <i class="fa fa-star-o"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="mb-3">{{ product.description }}</div>
+            <div class="product-price mb-3">
+                {{ product.price }} €
+            </div>
+                {% if product.quantity > 0 %}
+                    <form id="add-to-cart-form-{{ product.id }}" class="product-add-to-car" action="#" method="post" onsubmit="addToCart(event, '{{ product.id }}')">
+                        <input type="number" class="form-control" name="qty" value="1" min="1" required/>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-cart-plus"></i> Add to cart</button>
+                    </form>
+                    {% else %}
+                    <a href="/" class="btn btn-outline-info"><i class="fas fa-chevron-left"></i> Back to Shop</a>
+                {% endif %}
+        </div>  
+    </div>
+    <div class="product-reviews mt-4">
+        <h3>Customer Reviews ({{ total_ratings }})</h3>
+        <p>Average Rating: {{ "%.1f"|format(average_rating) }}</p>
+        <p>Total Reviews: {{ total_ratings }}</p>
+        {% if total_ratings > 0 %}
+        <ul class="list-group">
+            {% for rating, user_name in ratings %}
+                <li class="list-group-item">
+                    <strong>{{ user_name }}</strong> 
+                    <span class="text-muted">rated {{ rating.rating }}/5</span> <br>
+                    {% for _ in range(rating.rating|int) %}
+                        <i class="fa fa-star text-warning"></i>
+                    {% endfor %}
+                    {% if rating.rating % 1 != 0 %}
+                        <i class="fa fa-star-half-o text-warning"></i>
+                    {% endif %}
+                    <br>
+                    <small>Rated on: {{ rating.created_on.strftime('%Y-%m-%d') }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No reviews yet. Be the first to review!</p>
+    {% endif %}
+    </div>
+</section>
+{% endblock %}
