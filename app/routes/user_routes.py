@@ -102,16 +102,29 @@ def login():
 
         user = User.query.filter_by(login_email=login_email).first()
         
-        if user and check_password_hash(user.password, password):
+        if user:
             if user.is_deleted or not user.is_active:
                 form.email.errors.append("This account is blocked or deleted.")
                 return render_template('user/user_login_extends_base.html', form=form)
+            if user.failed_login_count >= 3:
+                form.email.errors.append("This account is locked due too many incorrect login attempts. Please contact the administrator")
+            if check_password_hash(user.password, password):
+                user.failed_login_count = 0
+                login_user(user)  
+                flash("You have successfully logged in!", "success")
+                db.session.commit()
+                return redirect(url_for('users.dashboard'))
+            else:
+                user.failed_login_count += 1
+                if user.failed_login_count >= 3:
+                    user.is_active = False
+                    form.email.errors.append("This account is locked due too many incorrect login attempts. Please contact the administrator")
+                db.session.commit()
+                flash("Invalid email or password", "danger")
+                return render_template('user/user_login_extends_base.html', form=form)
             
-            login_user(user)  # user login using flask-login built in function
-            flash("You have successfully logged in!", "success")
-            return redirect(url_for('users.dashboard'))
         else:
-            flash("Invalid email or password")
+            flash("Invalid email or password", "danger")
             return render_template('user/user_login_extends_base.html', form = form)
         
     return render_template('user/user_login_extends_base.html', form = form)
@@ -124,72 +137,26 @@ def logout():
     flash("You have successfully logged out!", "success")
     return redirect(url_for('users.login'))
 
-@bp.route("/user_homepage")
-@login_required
-def user_homepage():
-    products = Product.query.filter_by(is_deleted=False).all()
-    if current_user.is_admin:
-        return redirect(url_for('users.admin_dashboard'))
-    return render_template("user/products_extends_userhomepage.html", products=products)
-
-
 @bp.route('/dashboard')
 @login_required
 def dashboard():
     if current_user.is_admin:
-        return redirect(url_for('users.admin_dashboard'))
-    else:
-        return redirect(url_for('users.user_homepage'))
+        return redirect(url_for('admin.index'))
+    products = Product.query.filter_by(is_deleted=False).all()
+    client_token = gateway.client_token.generate()   
+    return render_template('user/products_extends_userlayout.html', products=products, client_token=client_token)    
     
-
-@bp.route('/admin_dashboard')
-@login_required
-def admin_dashboard():
-    if not current_user.is_admin:
-        return redirect(url_for('users.dashboard'))
-    return render_template('admin/admin_layout.html') 
-
-
-@bp.route('/user_dashboard')
-@login_required
-def user_dashboard():
-    if current_user.is_admin:
-        return redirect(url_for('users.admin_dashboard'))
-    client_token = gateway.client_token.generate()
-    return render_template('user/user_layout.html', client_token=client_token) 
-
-
 @bp.route('/transactions')
 @login_required
 def show_transactions():
-    if current_user.is_admin:
-        # Admins see all transactions
-        transactions = Transaction.query.all()
-        return render_template('admin/view_all_transactions.html', transactions=transactions)  # Admin template
-    else:
-        # Regular user sees only their own transactions
-        transactions = Transaction.query.filter_by(user_id=current_user.id).all()
-        return render_template('user/user_transactions.html', transactions=transactions)
-
-@bp.route('/admin/all_users')
-@login_required
-def show_users():
-    if not current_user.is_admin:
-        abort(403)   
-    users = User.query.all()
-    return render_template('admin/view_users.html', users=users)
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+    return render_template('user/user_transactions.html', transactions=transactions)
 
 @bp.route('/orders')
 @login_required
 def show_orders():
-    if current_user.is_admin:
-        # Admin sees all orders
-        orders = Order.query.all()
-        return render_template('admin/view_orders.html', orders=orders)  # Admin template
-    else:
-        # Regular user sees only their own orders
-        orders = Order.query.filter_by(user_id=current_user.id).all()
-        return render_template('user/view_orders.html', orders=orders)
+    orders = Order.query.filter_by(user_id=current_user.id).all()
+    return render_template('user/view_orders.html', orders=orders)
     
 @bp.route('/add_balance', methods=['POST'])
 @login_required
@@ -200,13 +167,13 @@ def add_balance():
 
         if not amount or not nonce:
             flash("Invalid input. Please try again.", "danger")
-            return redirect(url_for('users.user_dashboard'))
+            return redirect(url_for('users.dashboard'))
 
         amount = float(amount)
 
         if amount <= 0:
             flash("Amount must be greater than 0.", "danger")
-            return redirect(url_for('users.user_dashboard'))
+            return redirect(url_for('users.dashboard'))
         
         result = gateway.transaction.sale({
             "amount": f"{amount:.2f}",
@@ -238,7 +205,7 @@ def add_balance():
         print(f"Error during add_balance: {e}")
         flash("An error occurred. Please try again later.", "danger")
 
-    return redirect(url_for('users.user_dashboard'))
+    return redirect(url_for('users.dashboard'))
 
 
 @bp.route('/cash_out', methods=['POST'])
@@ -249,18 +216,18 @@ def cash_out():
 
         if not amount:
             flash("Invalid input. Please try again.", "danger")
-            return redirect(url_for('users.user_dashboard'))
+            return redirect(url_for('users.dashboard'))
 
         amount = float(amount)
 
         if amount <= 0:
             flash("Amount must be greater than 0.", "danger")
-            return redirect(url_for('users.user_dashboard'))
+            return redirect(url_for('users.dashboard'))
 
         # Check if user has sufficient balance
         if current_user.balance < amount:
             flash("Insufficient balance to complete the cash out.", "danger")
-            return redirect(url_for('users.user_dashboard'))
+            return redirect(url_for('users.dashboard'))
 
         # Deduct amount from user's balance
         current_user.balance -= amount
@@ -276,13 +243,13 @@ def cash_out():
         print(f"Error during cash_out: {e}")
         flash("An error occurred. Please try again later.", "danger")
 
-    return redirect(url_for('users.user_dashboard'))
+    return redirect(url_for('users.dashboard'))
 
 @bp.route('/order_payment', methods=['POST'])
 @login_required
-def pay_for_order():
+def pay_for_order(order_id):
     try:
-        order_id = request.form.get('order_id')
+        # order_id = request.form.get('order_id')
         order = Order.query.get(order_id)
 
         if not order:
@@ -293,7 +260,7 @@ def pay_for_order():
         price = order.purchase_price
         if current_user.balance < price:
             flash("Insufficient funds. Please add to your balance.", "danger")
-            return redirect(url_for('users.user_dashboard'))
+            return redirect(url_for('users.dashboard'))
 
         # Deduct the price from the user's balance
         current_user.balance -= price
@@ -307,5 +274,5 @@ def pay_for_order():
         print(f"Error during payment: {e}")
         flash("An error occurred. Please try again later.", "danger")
 
-    return redirect(url_for('users.user_dashboard'))
+    return redirect(url_for('users.dashboard'))
 

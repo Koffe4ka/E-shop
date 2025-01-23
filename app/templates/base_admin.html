@@ -21,21 +21,17 @@
 
     <div class="container nav-bar">
         <div class="header-logo">
-            <a href="{{ url_for('shop.show') }}" title="">
+            <a href="{{ url_for('admin.shop_review') }}" title="">
                 <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="">
             </a>
         </div>
         <nav class="nav">
-            <a class="nav-link" href="{{ url_for('cart.view_cart') }}"><i class="fa-solid fa-cart-shopping"></i> My Cart</a>
-            <a class="nav-link" href="{{ url_for('users.login') }}"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            <a class="nav-link" href="{{ url_for('admin.index') }}"><i class="fa-solid fa-right-to-bracket"></i> Return to Dashboard</a>
         </nav>
     </div>
 </header>
 <main>
     <div class="container">
-        <!-- <p>Vartotojas prisijungęs: {{ current_user.is_authenticated }}</p>
-        <p>Vartotojas adminas: {{ current_user.is_admin }}</p> -->
- 
         {% block content %} {% endblock %}
     </div>
 </main>

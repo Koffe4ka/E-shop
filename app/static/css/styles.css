@@ -32,13 +32,14 @@ header {
     position: fixed;
     top: 0;
     width: 100%;
-    z-index: 1000;
+    z-index: 1050;
 }
 .header-logo img {
 	max-width: 150px;
 }
 .header-logo {
 	float: left;
+    margin-right: 100px;
 }
 .nav-bar {
     display: flex;
@@ -196,4 +197,34 @@ i.fa-star, i.fa-star-half-o {
 }
 i.fa-star-o {
     color: #c9c9c9;
+}
+
+.product-actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.balance-container {
+    display: inline-flex;         
+    align-items: center;          
+    gap: 5px;                    
+}
+
+.balance-container strong {
+    font-size: 1rem;              
+    margin: 0;
+}
+
+.balance-container button {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    font-size: 11px; 
+}
+
+.cart-product-name{
+    font-size: larger;
 }
