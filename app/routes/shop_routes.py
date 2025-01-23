@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template
 from flask_login import current_user
 from app.database import db
 from sqlalchemy import func
 from app.models.product import Product
 from app.models.user import User
+from app.models.rating import Rating
 from app.models.rating import Rating
 
 bp = Blueprint('shop', __name__)

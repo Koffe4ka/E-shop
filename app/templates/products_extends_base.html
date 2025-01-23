@@ -21,6 +21,7 @@
                         {% endif %}
                         
                         <p class="card-text text-muted"> Price: <strong> {{ product.price }} € </strong></p>
+
                         <p></p> 
                         <div class="product-rating mb-2">
                             <div class="rating-stars">
@@ -39,6 +40,7 @@
                                 <small>({{ total_reviews }})</small>
                             </div>
                         </div>
+                    
                     <div class="product-actions">
                         <div id="add-to-cart-btn-container">
                             {%if current_user.is_admin==False%}
