@@ -21,10 +21,13 @@ def get_order_items_by_days_in_range(start_date=None, end_date=None):
 
 
 def get_sales_by_month():
-    month_sales = db.session.query(func.strftime('%Y-%m', Order.created_on).label('month'),
-                                   func.sum(Order.purchase_price).label('total_amount')) \
-                                    .group_by(func.strftime('%Y-%m', Order.created_on))  \
-                                    .order_by(func.strftime('%Y-%m', func.sum(Order.purchase_price))).all()
+    month_sales = db.session.query(
+        func.date_format(Order.created_on, '%Y-%m').label('month'),
+        func.sum(Order.purchase_price).label('total_amount')
+    ) \
+    .group_by(func.date_format(Order.created_on, '%Y-%m')) \
+    .order_by(func.date_format(Order.created_on, '%Y-%m')).all()
+   
     return month_sales
 
 
@@ -56,9 +59,12 @@ def get_best_sales_products(limit=10):
         Product.name.label('product_name'),
         Product.price.label('price'),
         Product.rating.label('rating'),
+        func.coalesce(func.avg(Rating.rating), 0).label('rating'),  # Apskaičiuojamas vidutinis įvertinimas
+        func.count(Rating.id).label('rating_counts'),  # Skaičiuojamas įvertinimų kiekis
         func.sum(OrderItem.quantity).label('sales_qty'),
         func.sum(Product.price * OrderItem.quantity).label('total_income'),) \
     .join(OrderItem, OrderItem.product_id == Product.id) \
+    .outerjoin(Rating, Rating.product_id == Product.id) \
     .group_by(Product.id, Product.name, Product.price) \
     .order_by(func.sum(Product.price * OrderItem.quantity).desc()) \
     .limit(limit).all()

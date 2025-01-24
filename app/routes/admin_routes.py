@@ -7,6 +7,7 @@ from app.models.transaction import Transaction
 from app.database import db
 from sqlalchemy import func
 from app.models.user import User
+from app.models.rating import Rating
 from werkzeug.utils import secure_filename
 from config import Config
 from werkzeug.security import generate_password_hash
@@ -22,9 +23,14 @@ def allowed_file(filename):
 
 
 @admin.route('/')
-@login_required
 def index():
-    return render_template('admin/index.html')
+    month_sales = stat.get_sales_by_month()
+    best_rated = stat.get_best_rated_products()
+    best_sales = stat.get_best_sales_products()
+    return render_template('admin/index.html',
+                            month_sales=month_sales,
+                            best_rated=best_rated,
+                            best_sales=best_sales)
 
 @admin.route("/add_product", methods = ["GET", "POST"])
 @login_required
@@ -93,8 +99,23 @@ def add_product():
 @admin.route("/list_products")
 @login_required
 def list_products():
-    products = Product.query.all()
-    return render_template("admin/product_list.html", products=products)    
+    products = db.session.query(
+        Product.id,
+        Product.name,
+        Product.description,
+        Product.price,
+        Product.picture,
+        Product.quantity,
+        Product.is_deleted,
+        Product.is_available,
+        Product.created_on,
+        func.coalesce(func.avg(Rating.rating), 0).label('average_rating'),
+        func.count(Rating.id).label('total_ratings')
+    ).outerjoin(Rating, Rating.product_id == Product.id) \
+     .group_by(Product.id) \
+     .all()
+
+    return render_template("admin/product_list.html", products=products)   
 
 
 @admin.route("/delete_product/<int:id>", methods = ["GET", "POST"])

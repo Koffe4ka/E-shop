@@ -168,13 +168,13 @@ def add_balance():
 
         if not amount or not nonce:
             flash("Invalid input. Please try again.", "danger")
-            return redirect(url_for('users.dashboard'))
+            return redirect(request.referrer)
 
         amount = float(amount)
 
         if amount <= 0:
             flash("Amount must be greater than 0.", "danger")
-            return redirect(url_for('users.dashboard'))
+            return redirect(request.referrer)
         
         result = gateway.transaction.sale({
             "amount": f"{amount:.2f}",
@@ -206,7 +206,7 @@ def add_balance():
         print(f"Error during add_balance: {e}")
         flash("An error occurred. Please try again later.", "danger")
 
-    return redirect(url_for('users.dashboard'))
+    return redirect(request.referrer)
 
 
 @bp.route('/cash_out', methods=['POST'])
