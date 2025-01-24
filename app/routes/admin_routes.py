@@ -1,4 +1,3 @@
-
 from flask import render_template, request, redirect, url_for, Blueprint, current_app, flash
 from flask_login import login_required
 from app.models.product import Product
@@ -7,6 +6,7 @@ from app.models.transaction import Transaction
 from app.database import db
 from sqlalchemy import func
 from app.models.user import User
+from app.models.rating import Rating
 from app.models.rating import Rating
 from werkzeug.utils import secure_filename
 from config import Config
@@ -53,15 +53,18 @@ def add_product():
         is_deleted = False
         created_on = func.now()
        
+       
         if 'picture' not in request.files:
             flash('There is no file selected','danger')         # reloads the current page if no image is selected
             return redirect(request.url)
+       
        
         picture = request.files["picture"]
  
         if picture.filename == '':
             flash('filename is empty','danger')                  # reloads currnet page if file has no name
             return redirect(request.url)
+ 
  
         if picture and allowed_file(picture.filename):
             filename = secure_filename(picture.filename)                                #returns the secure version of the image
@@ -72,9 +75,12 @@ def add_product():
                 flash("Upload error",'danger')
                 return redirect(request.url)
            
+           
         else:
             flash("Format not allowed",'danger')
             return redirect(request.url)
+ 
+ 
  
  
         product = Product(
@@ -83,10 +89,15 @@ def add_product():
             price=price,
             quantity=quantity,
             is_available=is_available,
+            description=description,
+            price=price,
+            quantity=quantity,
+            is_available=is_available,
             is_deleted=is_deleted,
             created_on = created_on,
             picture = filename
             )
+       
        
         db.session.add(product)
         db.session.commit()
@@ -123,9 +134,11 @@ def list_products():
 def delete_product(id):
     product = Product.query.get(id)
  
+ 
     if not product:
         flash('Product not found','danger')
         return redirect(request.url)
+ 
  
     if request.method == "POST":
         product.is_deleted = True
@@ -141,9 +154,11 @@ def delete_product(id):
 def restore_product(id):
     product = Product.query.get(id)
  
+ 
     if not product:
         flash('Product not found','danger')
         return redirect(request.url)
+ 
  
     if request.method == "POST":
         product.is_deleted = False
@@ -160,9 +175,11 @@ def restore_product(id):
 def edit_product(id):
     product = Product.query.get(id)
  
+ 
     if not product:
         flash("Product not found",'danger')
         return redirect(url_for("admin.list_products"))
+   
    
     if request.method == "POST":
         try:
@@ -210,6 +227,7 @@ def show_users():
 @login_required
 def delete_user(id):
     user = User.query.get(id)
+ 
  
     if not user:
         flash('User not found','danger')
@@ -318,4 +336,3 @@ def show_orders():
 def show_transactions():
     transactions = Transaction.query.all()
     return render_template('admin/view_all_transactions.html', transactions=transactions)  # Admin template
-

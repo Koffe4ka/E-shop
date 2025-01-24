@@ -1,5 +1,4 @@
 from app.database import db
-from datetime import datetime
 from sqlalchemy import func
 
 class Order(db.Model):
@@ -11,6 +10,3 @@ class Order(db.Model):
     # relations
     user = db.relationship("User", back_populates="orders")
     order_items = db.relationship("OrderItem", back_populates="order")
-
-    def __repr__(self):
-        pass

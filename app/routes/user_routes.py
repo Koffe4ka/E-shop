@@ -6,6 +6,7 @@ from app.models.order import Order
 from app.models.product import Product
 from app.models.transaction import Transaction
 from app.models.product_cart import ProductCart
+from app.models.order_item import OrderItem
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm 
@@ -114,7 +115,15 @@ def login():
                 login_user(user)  
                 flash("You have successfully logged in!", "success")
                 db.session.commit()
-                return redirect(url_for('shop.show'))
+
+                #handling rerouting here
+                next_page = request.args.get('next')
+
+                if next_page:
+                    return redirect(next_page)
+                else:
+                    return redirect(url_for('shop.show'))
+                
             else:
                 user.failed_login_count += 1
                 if user.failed_login_count >= 3:
@@ -127,7 +136,8 @@ def login():
         else:
             flash("Invalid email or password", "danger")
             return render_template('user/user_login_extends_base.html', form = form)
-        
+            
+
     return render_template('user/user_login_extends_base.html', form = form)
 
 
@@ -138,6 +148,7 @@ def logout():
     flash("You have successfully logged out!", "success")
     return redirect(url_for('users.login'))
 
+
 @bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -146,19 +157,22 @@ def dashboard():
     products = Product.query.filter_by(is_deleted=False).all()
     client_token = gateway.client_token.generate()   
     return render_template('products_extends_base.html', products=products, client_token=client_token)    
-    
+
+
 @bp.route('/transactions')
 @login_required
 def show_transactions():
     transactions = Transaction.query.filter_by(user_id=current_user.id).all()
     return render_template('user/user_transactions.html', transactions=transactions)
 
+
 @bp.route('/orders')
 @login_required
 def show_orders():
     orders = Order.query.filter_by(user_id=current_user.id).all()
     return render_template('user/view_orders.html', orders=orders)
-    
+
+
 @bp.route('/add_balance', methods=['POST'])
 @login_required
 def add_balance():
@@ -169,12 +183,14 @@ def add_balance():
         if not amount or not nonce:
             flash("Invalid input. Please try again.", "danger")
             return redirect(request.referrer)
+ 
 
         amount = float(amount)
 
         if amount <= 0:
             flash("Amount must be greater than 0.", "danger")
             return redirect(request.referrer)
+ 
         
         result = gateway.transaction.sale({
             "amount": f"{amount:.2f}",
@@ -185,7 +201,6 @@ def add_balance():
         })
 
         if result.is_success:
-            # Update user's balance
             current_user.balance += amount
 
             transaction = Transaction(user_id=current_user.id, sum=amount, status="Completed", type = "Deposit")
@@ -207,7 +222,7 @@ def add_balance():
         flash("An error occurred. Please try again later.", "danger")
 
     return redirect(request.referrer)
-
+ 
 
 @bp.route('/cash_out', methods=['POST'])
 @login_required
@@ -217,20 +232,18 @@ def cash_out():
 
         if not amount:
             flash("Invalid input. Please try again.", "danger")
-            return redirect(url_for('users.dashboard'))
-
+            return redirect(request.referrer)
+ 
         amount = float(amount)
 
         if amount <= 0:
             flash("Amount must be greater than 0.", "danger")
-            return redirect(url_for('users.dashboard'))
-
-        # Check if user has sufficient balance
+            return redirect(request.referrer)
+ 
         if current_user.balance < amount:
             flash("Insufficient balance to complete the cash out.", "danger")
-            return redirect(url_for('users.dashboard'))
-
-        # Deduct amount from user's balance
+            return redirect(request.referrer)
+ 
         current_user.balance -= amount
 
         transaction = Transaction(user_id=current_user.id, sum=-amount, status="Completed", type = "Cash out")
@@ -244,12 +257,13 @@ def cash_out():
         print(f"Error during cash_out: {e}")
         flash("An error occurred. Please try again later.", "danger")
 
-    return redirect(url_for('users.dashboard'))
+    return redirect(request.referrer)
+ 
 
 @bp.route('/order_payment/<int:cart_id>', methods=['POST'])
 @login_required
 def pay_for_order(cart_id):
-    try:
+    # try:
         cart = ProductCart.query.get(cart_id)
 
         if not cart:
@@ -260,22 +274,38 @@ def pay_for_order(cart_id):
 
         if current_user.balance < total_price:
             flash("Insufficient funds. Please add to your balance.", "danger")
-            return redirect(url_for('cart.view_cart'))
+            return redirect(request.referrer)
 
-        # Deduct the price from the user's balance
         current_user.balance -= total_price
 
-        transaction = Transaction(user_id=current_user.id, sum=-total_price, status="Completed", type = "Order payment")
         order = Order(user_id=current_user.id, purchase_price = total_price)
+        
         db.session.add(order)
-        db.session.add(transaction)
+        db.session.flush()
+        
+        for cart_item in cart.cart_items:
+            product = cart_item.product
+            if product.quantity < cart_item.quantity:
+                flash(f"Not enough available units for {product.name}, currently {product.quantity} units left in stock.", "danger")
+                return redirect(request.referrer)
+            
+            product.quantity -= cart_item.quantity
+
+            order_item = OrderItem(order_id=order.id, product_id=product.id, quantity=cart_item.quantity)
+            db.session.add(order_item)
+        
         db.session.delete(cart)
+
+        transaction = Transaction(user_id=current_user.id, sum=-total_price, status="Completed", type = "Order payment")
+        
+        db.session.add(transaction)
         db.session.commit()
     
         flash(f"Successfully paid {total_price}€ for your order!", "success")
-    except Exception as e:
-        print(f"Error during payment: {e}")
-        flash("An error occurred. Please try again later.", "danger")
+   
+    # except Exception as e:
+    #     print(f"Error during payment: {e}")
+    #     flash("An error occurred. Please try again later.", "danger")
 
-    return redirect(url_for('users.dashboard'))
+        return redirect(url_for('shop.show'))
 

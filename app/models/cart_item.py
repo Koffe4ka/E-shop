@@ -7,7 +7,6 @@ class CartItem(db.Model):
     products_cart_id = db.Column(db.Integer, db.ForeignKey('product_carts.id'))
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
     quantity = db.Column(db.Integer, nullable = False)
-    # relations
-    products_carts = db.relationship('ProductCart', back_populates='cart_items')
-    product = db.relationship('Product', back_populates='cart_items')
 
+    products_carts = db.relationship('ProductCart', back_populates='cart_items', cascade = "all,delete")
+    product = db.relationship('Product', back_populates='cart_items')
